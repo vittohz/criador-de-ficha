@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maculados Pelo Metal — Ficha de Personagem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brass:      #C49A2A;
+  --brass-dark: #8B6A10;
+  --brass-dim:  #5A4208;
+  --copper:     #B87333;
+  --rust:       #8B3A1A;
+  --steel:      #1E1E2A;
+  --steel-mid:  #2A2A3A;
+  --steel-lit:  #3A3A50;
+  --parch:      #C8A060;
+  --parch-dark: #8B6A30;
+  --parch-dim:  #4A3018;
+  --ink:        #1A0E06;
+  --smoke:      #D4C8A8;
+  --glow:       rgba(196,154,42,0.25);
+  --rivet:      #3A3020;
+}
+
+html { font-size: 14px; scroll-behavior: smooth; }
+
+body {
+  background: var(--steel);
+  color: var(--smoke);
+  font-family: 'IM Fell English', Georgia, serif;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(184,115,51,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(139,58,26,0.06) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.008) 40px, rgba(255,255,255,0.008) 41px),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.008) 40px, rgba(255,255,255,0.008) 41px);
+}
+
+/* ─── TYPOGRAPHY ───────────────────────────────── */
+h1, h2, h3 { font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
+.display { font-family: 'Cinzel Decorative', serif; }
+.mono { font-family: 'Share Tech Mono', monospace; }
+label { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brass); }
+
+/* ─── SCROLLBAR ────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--steel-mid); }
+::-webkit-scrollbar-thumb { background: var(--brass-dim); border-radius: 2px; }
+
+/* ─── LAYOUT ───────────────────────────────────── */
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* ─── HEADER ───────────────────────────────────── */
+header {
+  position: relative;
+  text-align: center;
+  padding: 2rem 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--brass-dim);
+}
+
+header::before,
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  width: 30%;
+  height: 2px;
+  background: var(--brass);
+}
+header::before { left: 0; }
+header::after  { right: 0; }
+
+.header-title {
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+  color: var(--brass);
+  text-shadow: 0 0 30px rgba(196,154,42,0.4);
+  line-height: 1.2;
+}
+.header-sub {
+  font-size: 0.75rem;
+  color: var(--parch-dark);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-top: 0.4rem;
+  font-family: 'Cinzel', serif;
+  font-style: italic;
+}
+
+.gear-deco {
+  display: inline-block;
+  color: var(--brass-dim);
+  font-size: 1.4rem;
+  vertical-align: middle;
+  margin: 0 0.8rem;
+  animation: spin-slow 20s linear infinite;
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+
+/* ─── SAVE BUTTON ──────────────────────────────── */
+.save-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--brass-dim);
+  background: transparent;
+  color: var(--brass);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(196,154,42,0.2);
+  pointer-events: none;
+}
+.btn:hover {
+  background: var(--brass-dim);
+  color: var(--smoke);
+  box-shadow: 0 0 12px var(--glow);
+}
+.btn-danger { border-color: var(--rust); color: var(--rust); }
+.btn-danger:hover { background: var(--rust); color: var(--smoke); box-shadow: 0 0 12px rgba(139,58,26,0.4); }
+
+/* ─── PANEL ────────────────────────────────────── */
+.panel {
+  background: var(--steel-mid);
+  border: 1px solid var(--brass-dim);
+  position: relative;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(196,154,42,0.08);
+  pointer-events: none;
+}
+
+/* rivets */
+.panel .rivet {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #6A5820, #2A2010);
+  border: 1px solid #5A4A18;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.6), 0 0 3px rgba(0,0,0,0.4);
+}
+.panel .rivet.tl { top: 6px; left: 6px; }
+.panel .rivet.tr { top: 6px; right: 6px; }
+.panel .rivet.bl { bottom: 6px; left: 6px; }
+.panel .rivet.br { bottom: 6px; right: 6px; }
+
+.panel-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brass);
+  border-bottom: 1px solid var(--brass-dim);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  font-family: 'Cinzel', serif;
+}
+
+/* ─── GRID LAYOUT ──────────────────────────────── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.grid-main { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; }
+
+@media (max-width: 700px) {
+  .grid-2, .grid-3, .grid-main { grid-template-columns: 1fr; }
+}
+
+/* ─── INPUTS ───────────────────────────────────── */
+.field { margin-bottom: 0.8rem; }
+.field label { display: block; margin-bottom: 0.3rem; }
+
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  background: var(--steel);
+  border: 1px solid var(--brass-dim);
+  border-top-color: var(--rivet);
+  color: var(--smoke);
+  font-family: 'IM Fell English', serif;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.6rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--brass-dark);
+  box-shadow: 0 0 8px var(--glow);
+}
+select option { background: var(--steel-mid); }
+textarea { min-height: 80px; }
+
+/* ─── ATRIBUTOS ────────────────────────────────── */
+.atributos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+}
+@media (max-width: 500px) {
+  .atributos-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.attr-block {
+  border: 1px solid var(--brass-dim);
+  background: var(--steel);
+  padding: 0.6rem;
+  text-align: center;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.attr-block:hover { border-color: var(--brass-dark); }
+
+.attr-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--brass);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.attr-pips {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 0.3rem;
+}
+
+.pip {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--brass-dim);
+  background: var(--steel-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.pip:hover { border-color: var(--brass); }
+.pip.filled {
+  background: radial-gradient(circle at 40% 35%, var(--brass), var(--brass-dark));
+  border-color: var(--brass);
+  box-shadow: 0 0 6px rgba(196,154,42,0.5);
+}
+
+.attr-value {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.4rem;
+  color: var(--brass);
+  line-height: 1;
+}
+
+.attr-desc {
+  font-size: 0.62rem;
+  color: var(--parch-dark);
+  font-style: italic;
+  margin-top: 0.2rem;
+}
+
+/* ─── PERÍCIAS ─────────────────────────────────── */
+.pericia-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(196,154,42,0.08);
+  transition: background 0.15s;
+}
+.pericia-row:hover { background: rgba(196,154,42,0.03); }
+.pericia-row:last-child { border-bottom: none; }
+
+.pericia-name {
+  font-size: 0.85rem;
+  color: var(--smoke);
+}
+.pericia-name.special::after {
+  content: ' ✧';
+  color: var(--brass);
+  font-size: 0.7rem;
+}
+
+.dice-select {
+  width: auto;
+  padding: 0.2rem 0.4rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  background: var(--steel);
+  border-color: var(--brass-dim);
+  color: var(--brass);
+  min-width: 60px;
+}
+
+.dice-badge {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  border-radius: 2px;
+}
+.d12 { color: #6A7A8A; border-color: #4A5A6A; }
+.d10 { color: #7A8A6A; border-color: #5A6A4A; }
+.d8  { color: #9A8A5A; border-color: #7A6A3A; }
+.d6  { color: #C49A2A; border-color: #A47A1A; }
+.d4  { color: #E4BA4A; border-color: #C49A2A; text-shadow: 0 0 6px rgba(228,186,74,0.4); }
+
+/* ─── ESCALA DE FERRUGEM ───────────────────────── */
+.ef-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.ef-number {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 3rem;
+  color: var(--brass);
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(196,154,42,0.4);
+  min-width: 80px;
+  text-align: center;
+}
+
+.ef-bar-wrap {
+  flex: 1;
+}
+
+.ef-bar-track {
+  height: 12px;
+  background: var(--steel);
+  border: 1px solid var(--brass-dim);
+  position: relative;
+  overflow: hidden;
+}
+
+.ef-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4A8A3A 0%, #B8A030 40%, #C86020 70%, #8B1818 100%);
+  transition: width 0.4s ease;
+  position: relative;
+}
+.ef-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 8px,
+    rgba(0,0,0,0.2) 8px,
+    rgba(0,0,0,0.2) 9px
+  );
+}
+
+.ef-markers {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.2rem;
+}
+.ef-marker {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--parch-dark);
+}
+
+.ef-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.ef-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--brass-dim);
+  background: var(--steel);
+  color: var(--brass);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ef-btn:hover { background: var(--brass-dim); box-shadow: 0 0 8px var(--glow); }
+
+.ef-status {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid;
+}
+.ef-s0  { color: #4A8A3A; border-color: #2A5A1A; }
+.ef-s1  { color: #9A8A3A; border-color: #6A5A1A; }
+.ef-s2  { color: #C87A2A; border-color: #9A4A0A; }
+.ef-s3  { color: #C83A18; border-color: #8B1808; }
+.ef-s4  { color: #E82828; border-color: #B81010; text-shadow: 0 0 8px rgba(232,40,40,0.4); }
+
+/* ─── PV TRACKER ───────────────────────────────── */
+.pv-display {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.pv-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pv-current {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 2.8rem;
+  color: var(--copper);
+  text-shadow: 0 0 16px rgba(184,115,51,0.4);
+  line-height: 1;
+}
+.pv-sep {
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  color: var(--parch-dark);
+}
+.pv-max {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.6rem;
+  color: var(--parch-dark);
+  line-height: 1;
+}
+
+.pv-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.pv-input-row {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+.pv-input-row input {
+  width: 56px;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+}
+.pv-btn {
+  padding: 0.3rem 0.7rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  border: 1px solid var(--brass-dim);
+  background: var(--steel);
+  color: var(--brass);
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.pv-btn:hover { background: var(--brass-dim); }
+.pv-btn.dmg  { border-color: var(--rust); color: var(--rust); }
+.pv-btn.dmg:hover  { background: var(--rust); color: var(--smoke); }
+.pv-btn.heal { border-color: #4A8A3A; color: #6AAA5A; }
+.pv-btn.heal:hover { background: #2A4A1A; }
+
+.pv-bar-track {
+  height: 8px;
+  background: var(--steel);
+  border: 1px solid var(--brass-dim);
+  margin-top: 0.6rem;
+  overflow: hidden;
+}
+.pv-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8B1818 0%, #C86020 40%, #4A8A3A 100%);
+  transition: width 0.3s ease;
+}
+
+/* ─── EXAUSTÃO ─────────────────────────────────── */
+.exaustao-pips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.ex-pip {
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid var(--rust);
+  background: var(--steel);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.ex-pip.filled {
+  background: var(--rust);
+  box-shadow: 0 0 8px rgba(139,58,26,0.5);
+}
+.ex-pip.lethal {
+  border-color: #8B0000;
+}
+.ex-pip.lethal.filled {
+  background: #8B0000;
+  box-shadow: 0 0 12px rgba(139,0,0,0.7);
+  animation: pulse-red 1s ease-in-out infinite;
+}
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 8px rgba(139,0,0,0.5); }
+  50% { box-shadow: 0 0 16px rgba(139,0,0,0.9); }
+}
+.ex-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--parch-dark);
+  text-align: center;
+  margin-top: 0.2rem;
+}
+
+/* ─── ÂNCORAS ──────────────────────────────────── */
+.ancora-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  padding: 0.6rem;
+  border: 1px solid var(--brass-dim);
+  background: var(--steel);
+  transition: border-color 0.2s;
+}
+.ancora-item:hover { border-color: var(--brass-dark); }
+.ancora-item.broken {
+  border-color: var(--rust);
+  opacity: 0.6;
+}
+.ancora-item.broken input { text-decoration: line-through; color: var(--parch-dark); }
+
+.ancora-num {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  color: var(--brass-dark);
+  width: 20px;
+  text-align: center;
+}
+
+.ancora-break-btn {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--rust);
+  background: transparent;
+  color: var(--rust);
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.ancora-break-btn:hover { background: var(--rust); color: var(--smoke); }
+.ancora-item.broken .ancora-break-btn {
+  border-color: #4A8A3A;
+  color: #4A8A3A;
+}
+.ancora-item.broken .ancora-break-btn:hover { background: #2A4A1A; }
+
+.ancora-ef-note {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  color: var(--parch-dark);
+  font-style: italic;
+  margin-top: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  border-left: 2px solid var(--brass-dim);
+}
+
+/* ─── MODIFICAÇÕES ─────────────────────────────── */
+.mod-list { list-style: none; }
+
+.mod-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid rgba(196,154,42,0.08);
+  transition: background 0.15s;
+}
+.mod-item:hover { background: rgba(196,154,42,0.03); }
+
+.mod-name {
+  font-size: 0.88rem;
+  color: var(--smoke);
+}
+
+.mod-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid;
+  border-radius: 1px;
+}
+.grau-0 { color: #6AAA5A; border-color: #4A7A3A; }
+.grau-1 { color: #9A8A5A; border-color: #7A6A3A; }
+.grau-2 { color: #C49A2A; border-color: #9A7A1A; }
+.grau-3 { color: #C87A2A; border-color: #9A4A0A; }
+.grau-4 { color: #E82828; border-color: #B81010; }
+
+.ef-cost {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--copper);
+  border: 1px solid var(--brass-dim);
+  padding: 0.1rem 0.3rem;
+}
+
+.mod-del {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(139,58,26,0.4);
+  background: transparent;
+  color: rgba(139,58,26,0.6);
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.mod-del:hover { border-color: var(--rust); color: var(--rust); background: rgba(139,58,26,0.15); }
+
+.add-mod-form {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+.add-mod-form input, .add-mod-form select {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.5rem;
+}
+
+/* ─── CONTATOS ─────────────────────────────────── */
+.contato-item {
+  border: 1px solid var(--brass-dim);
+  background: var(--steel);
+  padding: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.contato-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+.contato-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: var(--brass);
+}
+.favor-pips {
+  display: flex;
+  gap: 3px;
+}
+.favor-pip {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--brass-dim);
+  background: var(--steel-mid);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.15s;
+}
+.favor-pip.filled {
+  background: var(--brass-dark);
+  border-color: var(--brass);
+  box-shadow: 0 0 4px var(--glow);
+}
+
+/* ─── REPUTAÇÃO ────────────────────────────────── */
+.rep-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.rep-number {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 2.5rem;
+  color: var(--copper);
+  line-height: 1;
+  min-width: 50px;
+}
+.rep-stars {
+  display: flex;
+  gap: 4px;
+}
+.rep-star {
+  font-size: 1.4rem;
+  color: var(--brass-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.rep-star.filled { color: var(--brass); text-shadow: 0 0 8px var(--glow); }
+.rep-star:hover { transform: scale(1.15); }
+
+.rep-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--parch-dark);
+  font-style: italic;
+  margin-top: 0.3rem;
+}
+
+/* ─── NOTAS ────────────────────────────────────── */
+.notas-area {
+  background: rgba(200,160,96,0.05);
+  border: 1px solid var(--brass-dim);
+  color: var(--smoke);
+  width: 100%;
+  min-height: 120px;
+  padding: 0.6rem;
+  font-family: 'IM Fell English', serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+.notas-area:focus { border-color: var(--brass-dark); box-shadow: 0 0 8px var(--glow); }
+
+/* ─── NOTIFICATION TOAST ───────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--steel-mid);
+  border: 1px solid var(--brass);
+  color: var(--brass);
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding: 0.6rem 1.2rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ─── SECTION HEADER ───────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--brass-dim), transparent);
+}
+
+/* ─── PIPE DECORATION ──────────────────────────── */
+.pipe-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0.8rem 0;
+  overflow: hidden;
+}
+.pipe-seg {
+  height: 4px;
+  flex: 1;
+  background: var(--steel-lit);
+  border-top: 1px solid rgba(196,154,42,0.15);
+  border-bottom: 1px solid rgba(0,0,0,0.4);
+}
+.pipe-joint {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #5A4820, #2A1810);
+  border: 1px solid var(--brass-dim);
+  flex-shrink: 0;
+}
+
+/* ─── ARQUEAMENTO BLOCK ────────────────────────── */
+.arq-select {
+  font-size: 1rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--steel);
+  border: 1px solid var(--brass-dim);
+  color: var(--brass);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.arq-select:focus { border-color: var(--brass); box-shadow: 0 0 12px var(--glow); }
+
+.arq-desc {
+  font-size: 0.82rem;
+  color: var(--parch-dark);
+  font-style: italic;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-left: 2px solid var(--brass-dim);
+  line-height: 1.5;
+}
+
+.nivel-display {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+}
+.nivel-num {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 2rem;
+  color: var(--brass);
+  line-height: 1;
+}
+.nivel-pips {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.nivel-pip {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--brass-dim);
+  background: var(--steel-mid);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nivel-pip.filled {
+  background: var(--brass-dark);
+  border-color: var(--brass);
+}
+.nivel-pip:hover { border-color: var(--brass); }
+
+/* ─── RECURSOS ─────────────────────────────────── */
+.recursos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+@media (max-width: 500px) {
+  .recursos-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.recurso-block {
+  border: 1px solid var(--brass-dim);
+  background: var(--steel);
+  padding: 0.5rem;
+  text-align: center;
+}
+.recurso-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--brass);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.recurso-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.r-btn {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--brass-dim);
+  background: transparent;
+  color: var(--brass);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.r-btn:hover { background: var(--brass-dim); }
+.r-num {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1.2rem;
+  color: var(--smoke);
+  min-width: 24px;
+  text-align: center;
+}
+
+/* ─── CV TRACKER ───────────────────────────────── */
+.cv-track {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.cv-pip {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--copper);
+  background: var(--steel);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.cv-pip.filled {
+  background: radial-gradient(circle at 40% 35%, var(--copper), var(--rust));
+  box-shadow: 0 0 6px rgba(184,115,51,0.5);
+}
+.cv-pip:hover { border-color: var(--brass); }
+
+/* ─── FOOTER ───────────────────────────────────── */
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  border-top: 1px solid var(--brass-dim);
+  margin-top: 2rem;
+  color: var(--parch-dark);
+  font-size: 0.7rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.15em;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══ HEADER ═══ -->
+  <header>
+    <div class="header-title display">
+      <span class="gear-deco">⚙</span>
+      Maculados Pelo Metal
+      <span class="gear-deco" style="animation-direction:reverse">⚙</span>
+    </div>
+    <div class="header-sub">Ficha de Personagem · Alpha 3.0</div>
+  </header>
+
+  <!-- ═══ SAVE BAR ═══ -->
+  <div class="save-bar">
+    <button class="btn btn-danger" onclick="clearSheet()">Limpar</button>
+    <button class="btn" onclick="saveSheet()">⬡ Salvar Ficha</button>
+  </div>
+
+  <!-- ═══ IDENTIDADE ═══ -->
+  <div class="panel">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+    <div class="panel-title">⊕ Identidade</div>
+    <div class="grid-3">
+      <div class="field">
+        <label>Nome</label>
+        <input type="text" id="nome" placeholder="Como te chamam...">
+      </div>
+      <div class="field">
+        <label>Apelido</label>
+        <input type="text" id="apelido" placeholder="O metal te deu um nome?">
+      </div>
+      <div class="field">
+        <label>Origem</label>
+        <input type="text" id="origem" placeholder="De onde veio...">
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="field">
+        <label>Aparência</label>
+        <input type="text" id="aparencia" placeholder="O que os outros veem...">
+      </div>
+      <div class="field">
+        <label>Moradia</label>
+        <input type="text" id="moradia" placeholder="Onde dorme...">
+      </div>
+      <div class="field">
+        <label>Detalhe único</label>
+        <input type="text" id="detalhe" placeholder="O que só você tem...">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ARQUEAMENTO + NÍVEL ═══ -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Arqueamento</div>
+      <select class="arq-select" id="arqueamento" onchange="updateArqDesc()">
+        <option value="">— Escolha seu caminho —</option>
+        <option value="Fortificado">Fortificado</option>
+        <option value="Tecnocrata">Tecnocrata</option>
+        <option value="Rastejador">Rastejador</option>
+        <option value="Carniceiro">Carniceiro</option>
+        <option value="Quimera">Quimera</option>
+        <option value="Imaculado">Imaculado</option>
+      </select>
+      <div class="arq-desc" id="arq-desc">Escolha um arqueamento para ver sua descrição.</div>
+
+      <div class="nivel-display">
+        <div>
+          <label>Nível</label>
+          <div class="nivel-num" id="nivel-num">1</div>
+        </div>
+        <div class="nivel-pips" id="nivel-pips"></div>
+      </div>
+
+      <div class="field" style="margin-top:0.8rem">
+        <label>Convergência</label>
+        <input type="text" id="convergencia" placeholder="Desbloqueada no nível 6...">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Profissão</div>
+      <select class="arq-select" id="profissao">
+        <option value="">— Como sobrevive —</option>
+        <option>Operário de Fundição</option>
+        <option>Operador de Caldeira</option>
+        <option>Mensageiro Expresso</option>
+        <option>Relojoeiro</option>
+        <option>Ferreiro de Modificações</option>
+        <option>Guia do Submundo</option>
+        <option>Médico de Rua</option>
+        <option>Instalador Clandestino</option>
+        <option>Mercenário</option>
+        <option>Ladrão</option>
+      </select>
+
+      <div style="margin-top:0.8rem">
+        <label>Reputação</label>
+        <div class="rep-display">
+          <div class="rep-number" id="rep-num">1</div>
+          <div>
+            <div class="rep-stars" id="rep-stars"></div>
+            <div class="rep-label" id="rep-label">Desconhecido</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:0.8rem">
+        <label>Contato Inicial</label>
+        <input type="text" id="contato-init" placeholder="Nome e função...">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PV + EXAUSTÃO ═══ -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Pontos de Vida</div>
+      <div class="pv-display">
+        <div>
+          <div class="pv-numbers">
+            <div class="pv-current" id="pv-cur">16</div>
+            <div class="pv-sep">/</div>
+            <div class="pv-max" id="pv-max-disp">16</div>
+          </div>
+          <div class="pv-bar-track"><div class="pv-bar-fill" id="pv-bar" style="width:100%"></div></div>
+        </div>
+        <div class="pv-controls">
+          <div class="field" style="margin:0">
+            <label>PV Máximo</label>
+            <input type="number" id="pv-max" value="16" min="1" max="200" oninput="updatePV()" style="width:70px;text-align:center">
+          </div>
+          <div class="pv-input-row">
+            <input type="number" id="pv-delta" value="1" min="1" max="999" style="width:50px;text-align:center">
+            <button class="pv-btn dmg" onclick="damagePV()">− Dano</button>
+            <button class="pv-btn heal" onclick="healPV()">+ Cura</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Exaustão</div>
+      <div class="exaustao-pips" id="ex-pips"></div>
+      <div style="margin-top:0.6rem;font-size:0.75rem;color:var(--parch-dark);font-style:italic" id="ex-status">Descansado</div>
+
+      <div class="pipe-row" style="margin:0.8rem 0 0.6rem">
+        <div class="pipe-joint"></div><div class="pipe-seg"></div>
+        <div class="pipe-joint"></div><div class="pipe-seg"></div>
+        <div class="pipe-joint"></div><div class="pipe-seg"></div>
+        <div class="pipe-joint"></div>
+      </div>
+
+      <div>
+        <label>Cargas de Vapor (CV)</label>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.3rem">
+          <label style="color:var(--parch-dark);font-size:0.65rem;min-width:50px">Máximo</label>
+          <input type="number" id="cv-max" value="0" min="0" max="20" oninput="buildCVPips()" style="width:50px;text-align:center">
+        </div>
+        <div class="cv-track" id="cv-track"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ATRIBUTOS ═══ -->
+  <div class="panel">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+    <div class="panel-title">⊕ Atributos — 5 pontos para distribuir</div>
+    <div class="atributos-grid" id="atributos"></div>
+    <div style="margin-top:0.6rem;font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--parch-dark)">
+      Pontos usados: <span id="pts-used" style="color:var(--brass)">5</span> / 5
+    </div>
+  </div>
+
+  <!-- ═══ PERÍCIAS ═══ -->
+  <div class="panel">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+    <div class="panel-title">⊕ Perícias — 3 Competente · 2 Graduado</div>
+    <div class="grid-2">
+      <div>
+        <div style="color:var(--copper);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;border-bottom:1px solid rgba(184,115,51,0.2);padding-bottom:0.3rem">Físicas</div>
+        <div id="pericias-fisicas"></div>
+      </div>
+      <div>
+        <div style="color:var(--copper);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;border-bottom:1px solid rgba(184,115,51,0.2);padding-bottom:0.3rem">Técnicas</div>
+        <div id="pericias-tecnicas"></div>
+        <div style="color:var(--copper);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;margin:0.8rem 0 0.5rem;border-bottom:1px solid rgba(184,115,51,0.2);padding-bottom:0.3rem">Mentais</div>
+        <div id="pericias-mentais"></div>
+        <div style="color:var(--copper);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;margin:0.8rem 0 0.5rem;border-bottom:1px solid rgba(184,115,51,0.2);padding-bottom:0.3rem">Sociais</div>
+        <div id="pericias-sociais"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ESCALA DE FERRUGEM + ÂNCORAS ═══ -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Escala de Ferrugem</div>
+      <div class="ef-display">
+        <div class="ef-number" id="ef-num">0</div>
+        <div class="ef-bar-wrap">
+          <div class="ef-bar-track"><div class="ef-bar-fill" id="ef-bar" style="width:0%"></div></div>
+          <div class="ef-markers">
+            <span class="ef-marker">0</span>
+            <span class="ef-marker">5</span>
+            <span class="ef-marker">10</span>
+            <span class="ef-marker">15</span>
+            <span class="ef-marker">20</span>
+            <span class="ef-marker">21+</span>
+          </div>
+        </div>
+      </div>
+      <div class="ef-controls">
+        <button class="ef-btn" onclick="changeEF(-1)">−</button>
+        <button class="ef-btn" onclick="changeEF(1)">+</button>
+        <div class="ef-status" id="ef-status">Humano</div>
+      </div>
+      <div style="margin-top:0.8rem;font-size:0.78rem;color:var(--parch-dark);font-style:italic;line-height:1.5" id="ef-effect"></div>
+    </div>
+
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Âncoras</div>
+      <div id="ancoras-list"></div>
+      <div class="ancora-ef-note" id="ancora-note">
+        3 âncoras intactas — a ferrugem não te consome.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODIFICAÇÕES ═══ -->
+  <div class="panel">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+    <div class="panel-title">⊕ Modificações</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.72rem;color:var(--parch-dark)">
+        EF Total das Mods: <span id="mods-ef-total" style="color:var(--copper)">0</span>
+      </div>
+    </div>
+    <ul class="mod-list" id="mod-list"></ul>
+    <div class="add-mod-form">
+      <input type="text" id="mod-nome-inp" placeholder="Nome da modificação...">
+      <select id="mod-grau-inp">
+        <option value="0">Grau 0</option>
+        <option value="1">Grau 1</option>
+        <option value="2">Grau 2</option>
+        <option value="3">Grau 3</option>
+        <option value="4">Grau 4</option>
+      </select>
+      <input type="number" id="mod-ef-inp" placeholder="EF" min="0" max="10" style="width:55px;text-align:center">
+      <button class="btn" onclick="addMod()">Adicionar</button>
+    </div>
+  </div>
+
+  <!-- ═══ RECURSOS ═══ -->
+  <div class="panel">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+    <div class="panel-title">⊕ Recursos de Criação</div>
+    <div class="recursos-grid" id="recursos-grid"></div>
+  </div>
+
+  <!-- ═══ EQUIPAMENTO + NOTAS ═══ -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Equipamento</div>
+      <textarea class="notas-area" id="equipamento" placeholder="Armas, armadura, ferramentas, suprimentos...&#10;&#10;Formato livre — escreva como quiser."></textarea>
+    </div>
+
+    <div class="panel">
+      <div class="rivet tl"></div><div class="rivet tr"></div>
+      <div class="rivet bl"></div><div class="rivet br"></div>
+      <div class="panel-title">⊕ Notas e Conexões</div>
+      <textarea class="notas-area" id="notas" placeholder="Deve favores a quem?&#10;Quem te odeia?&#10;Quem você protege?&#10;&#10;O que aconteceu essa sessão..."></textarea>
+    </div>
+  </div>
+
+  <!-- ═══ CONTATOS ═══ -->
+  <div class="panel">
+    <div class="rivet tl"></div><div class="rivet tr"></div>
+    <div class="rivet bl"></div><div class="rivet br"></div>
+    <div class="panel-title">⊕ Contatos</div>
+    <div id="contatos-list"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:0.4rem;margin-top:0.5rem">
+      <input type="text" id="ct-nome" placeholder="Nome do contato...">
+      <input type="text" id="ct-info" placeholder="Função ou observação...">
+      <button class="btn" onclick="addContato()">+ Contato</button>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 Estúdio Xipongo · Maculados Pelo Metal · Ficha salva localmente no navegador
+  </footer>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Ficha salva.</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────────────────────
+const ATTRS = [
+  { key:'vig', label:'Vigor',    abbr:'VIG', desc:'Força bruta, ossos e músculos' },
+  { key:'des', label:'Destreza', abbr:'DES', desc:'Reflexos e precisão motora' },
+  { key:'for', label:'Fortitude',abbr:'FOR', desc:'Resistência a doenças e fadiga' },
+  { key:'raz', label:'Razão',    abbr:'RAZ', desc:'Memória, lógica e conhecimento' },
+  { key:'ins', label:'Instinto', abbr:'INS', desc:'Percepção e intuição' },
+  { key:'pre', label:'Presença', abbr:'PRE', desc:'Personalidade e conexão humana' },
+];
+
+const PERICIAS = {
+  fisicas: [
+    {key:'atletismo',    label:'Atletismo'},
+    {key:'braçal',       label:'Trabalho Braçal'},
+    {key:'combate',      label:'Combate'},
+    {key:'acrobacia',    label:'Acrobacia', special:true},
+    {key:'furtividade',  label:'Furtividade'},
+    {key:'resistencia',  label:'Resistência'},
+    {key:'biointegra',   label:'Biointegração'},
+  ],
+  tecnicas: [
+    {key:'precisao',     label:'Precisão Manual', special:true},
+    {key:'manejo',       label:'Manejo de Armas'},
+    {key:'engenharia',   label:'Engenharia'},
+    {key:'medicina',     label:'Medicina', special:true},
+    {key:'ciencia',      label:'Ciência', special:true},
+  ],
+  mentais: [
+    {key:'investigacao', label:'Investigação'},
+    {key:'conhecimento', label:'Conhecimento'},
+    {key:'percepcao',    label:'Percepção'},
+    {key:'intuicao',     label:'Intuição'},
+    {key:'sobrevivencia',label:'Sobrevivência', special:true},
+  ],
+  sociais: [
+    {key:'persuasao',    label:'Persuasão', special:true},
+    {key:'enganacao',    label:'Enganação'},
+    {key:'intimidacao',  label:'Intimidação'},
+    {key:'comando',      label:'Comando', special:true},
+  ],
+};
+
+const DICE_OPTIONS = [
+  {val:'d12', label:'d12 — Inapto'},
+  {val:'d10', label:'d10 — Competente'},
+  {val:'d8',  label:'d8  — Graduado'},
+  {val:'d6',  label:'d6  — Especialista'},
+  {val:'d4',  label:'d4  — Mestre'},
+];
+
+const ARQ_DESCS = {
+  'Fortificado': 'Seu corpo virou fortaleza. Cada placa instalada, cada pistão, cada válvula de pressão é uma declaração: você não vai cair.',
+  'Tecnocrata':  'Você não modificou seu corpo. Você o atualizou. A diferença parece importante até você não conseguir mais lembrar o rosto da sua mãe.',
+  'Rastejador':  'O silêncio não é ausência de som — é presença de controle. Cada articulação silenciada, cada passo que não existe.',
+  'Carniceiro':  'Você não aprendeu a lutar. Você aprendeu a não parar. Lutadores param quando vencem. Você para quando não há mais nada se movendo.',
+  'Quimera':     'Suas modificações não fazem sentido juntas. Você trava, falha sem aviso. Mas também faz coisas que não deveriam ser possíveis.',
+  'Imaculado':   'Em um mundo de deuses de metal, você permanece carne e sangue. Frágil. Mortal. Humano. Quando você fala, as pessoas lembram o que perderam.',
+};
+
+const EF_DATA = [
+  {max:5,  label:'Humano',           cls:'ef-s0', effect:'Nenhum benefício, nenhum custo. Você ainda é quem era.'},
+  {max:10, label:'Processando',      cls:'ef-s1', effect:'+1d8 em testes técnicos e analíticos. Conversas casuais ficam estranhas — você não sabe mais quando rir.'},
+  {max:15, label:'Suprimido',        cls:'ef-s2', effect:'+1d8 para resistir dor, medo e manipulação. Para sentir alegria ou compaixão é preciso um teste de PRE QS 2.'},
+  {max:20, label:'Frio',             cls:'ef-s3', effect:'+1d4 em combate. Você vê pessoas como unidades. Agir moralmente sem lógica requer PRE QS 3.'},
+  {max:99, label:'Dissolução',       cls:'ef-s4', effect:'+2d4 em tudo técnico e de combate. Ignora 1 nível de Exaustão. Mas algo essencial está desaparecendo.'},
+];
+
+const EX_LABELS = ['Descanso normal','Desvantagem em atributos','Deslocamento pela metade','Desvantagem em ataques','PV máximo reduzido','Deslocamento zero','MORTE'];
+
+const RECURSOS_DEF = [
+  {key:'sucata',     label:'Sucata Metálica'},
+  {key:'reagente',   label:'Reagente Químico'},
+  {key:'organico',   label:'Composto Orgânico'},
+  {key:'vapor',      label:'Carga de Vapor'},
+  {key:'eletrico',   label:'Comp. Elétrico'},
+  {key:'resto',      label:'Restos'},
+];
+
+// ─── STATE ─────────────────────────────────────────────────────────────────────
+let state = {
+  nome:'', apelido:'', origem:'', aparencia:'', moradia:'', detalhe:'',
+  arqueamento:'', convergencia:'', nivel:1,
+  profissao:'', reputacao:1, contato_init:'',
+  pv_max:16, pv_cur:16,
+  cv_max:0, cv_cur:0,
+  exaustao:0,
+  ef:0,
+  atributos:{ vig:1, des:1, for:1, raz:1, ins:1, pre:1 },
+  pericias:{},
+  ancoras:[
+    {texto:'', quebrada:false},
+    {texto:'', quebrada:false},
+    {texto:'', quebrada:false},
+  ],
+  modificacoes:[],
+  recursos:{ sucata:0, reagente:0, organico:0, vapor:0, eletrico:0, resto:0 },
+  contatos:[],
+  equipamento:'',
+  notas:'',
+};
+
+// ─── INIT ───────────────────────────────────────────────────────────────────────
+function init() {
+  const saved = localStorage.getItem('maculados_ficha');
+  if (saved) {
+    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+  }
+  // Init pericias defaults
+  Object.values(PERICIAS).flat().forEach(p => {
+    if (!state.pericias[p.key]) state.pericias[p.key] = 'd12';
+  });
+  buildAll();
+  restoreTextInputs();
+}
+
+function buildAll() {
+  buildAtributos();
+  buildPericias();
+  buildEF();
+  buildPV();
+  buildExaustao();
+  buildCVPips();
+  buildAncoras();
+  buildMods();
+  buildRecursos();
+  buildContatos();
+  buildNivelPips();
+  buildRepStars();
+  updateArqDesc();
+}
+
+function restoreTextInputs() {
+  const fields = ['nome','apelido','origem','aparencia','moradia','detalhe',
+                  'convergencia','contato_init','equipamento','notas'];
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el && state[f] !== undefined) el.value = state[f];
+  });
+  // selects
+  ['arqueamento','profissao'].forEach(f => {
+    const el = document.getElementById(f);
+    if (el) el.value = state[f] || '';
+  });
+  // numbers
+  document.getElementById('pv-max').value = state.pv_max;
+  document.getElementById('cv-max').value = state.cv_max;
+}
+
+// ─── TEXT INPUT LISTENERS ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  ['nome','apelido','origem','aparencia','moradia','detalhe',
+   'convergencia','contato_init','equipamento','notas',
+   'arqueamento','profissao'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      state[id.replace('-','_')] = el.value;
+      if (id==='arqueamento') updateArqDesc();
+    });
+  });
+  document.getElementById('pv-max').addEventListener('input', () => {
+    state.pv_max = parseInt(document.getElementById('pv-max').value) || 16;
+    updatePV();
+  });
+  document.getElementById('cv-max').addEventListener('input', () => {
+    state.cv_max = parseInt(document.getElementById('cv-max').value) || 0;
+    if (state.cv_cur > state.cv_max) state.cv_cur = state.cv_max;
+    buildCVPips();
+  });
+});
+
+// ─── ATRIBUTOS ──────────────────────────────────────────────────────────────────
+function buildAtributos() {
+  const cont = document.getElementById('atributos');
+  cont.innerHTML = '';
+  ATTRS.forEach(a => {
+    const val = state.atributos[a.key] || 1;
+    const div = document.createElement('div');
+    div.className = 'attr-block';
+    div.innerHTML = `
+      <div class="attr-name">${a.abbr}</div>
+      <div class="attr-pips">
+        ${[1,2,3,4].map(i => `
+          <div class="pip ${val>=i?'filled':''}" onclick="setAttr('${a.key}',${i})"></div>
+        `).join('')}
+      </div>
+      <div class="attr-value">${val}</div>
+      <div class="attr-desc">${a.desc}</div>
+    `;
+    cont.appendChild(div);
+  });
+  updatePtsUsed();
+}
+
+function setAttr(key, val) {
+  state.atributos[key] = val;
+  buildAtributos();
+}
+
+function updatePtsUsed() {
+  const total = Object.values(state.atributos).reduce((a,b)=>a+b,0) - 6;
+  const el = document.getElementById('pts-used');
+  if (el) {
+    el.textContent = total;
+    el.style.color = total === 5 ? 'var(--brass)' : total > 5 ? 'var(--rust)' : 'var(--copper)';
+  }
+}
+
+// ─── PERÍCIAS ───────────────────────────────────────────────────────────────────
+function buildPericiasIn(data, containerId) {
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  cont.innerHTML = '';
+  data.forEach(p => {
+    const val = state.pericias[p.key] || 'd12';
+    const row = document.createElement('div');
+    row.className = 'pericia-row';
+    row.innerHTML = `
+      <div class="pericia-name ${p.special?'special':''}">${p.label}</div>
+      <div class="dice-badge ${val}">${val}</div>
+      <select class="dice-select" onchange="setPericia('${p.key}',this.value)">
+        ${DICE_OPTIONS.map(o=>`<option value="${o.val}" ${val===o.val?'selected':''}>${o.val}</option>`).join('')}
+      </select>
+    `;
+    cont.appendChild(row);
+  });
+}
+
+function buildPericias() {
+  buildPericiasIn(PERICIAS.fisicas,  'pericias-fisicas');
+  buildPericiasIn(PERICIAS.tecnicas, 'pericias-tecnicas');
+  buildPericiasIn(PERICIAS.mentais,  'pericias-mentais');
+  buildPericiasIn(PERICIAS.sociais,  'pericias-sociais');
+}
+
+function setPericia(key, val) {
+  state.pericias[key] = val;
+  buildPericias();
+}
+
+// ─── ARQUEAMENTO ────────────────────────────────────────────────────────────────
+function updateArqDesc() {
+  const val = document.getElementById('arqueamento').value;
+  state.arqueamento = val;
+  const desc = document.getElementById('arq-desc');
+  if (desc) desc.textContent = ARQ_DESCS[val] || 'Escolha um arqueamento para ver sua descrição.';
+}
+
+function buildNivelPips() {
+  const cont = document.getElementById('nivel-pips');
+  const num  = document.getElementById('nivel-num');
+  if (!cont || !num) return;
+  cont.innerHTML = '';
+  num.textContent = state.nivel || 1;
+  for (let i = 1; i <= 10; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'nivel-pip' + ((state.nivel||1) >= i ? ' filled':'');
+    pip.onclick = () => { state.nivel = i; buildNivelPips(); };
+    cont.appendChild(pip);
+  }
+}
+
+// ─── REPUTAÇÃO ──────────────────────────────────────────────────────────────────
+const REP_LABELS = ['','Desconhecido','Reconhecido','Respeitado','Influente','Referência'];
+function buildRepStars() {
+  const cont = document.getElementById('rep-stars');
+  const num  = document.getElementById('rep-num');
+  const lbl  = document.getElementById('rep-label');
+  if (!cont) return;
+  cont.innerHTML = '';
+  const r = state.reputacao || 1;
+  num.textContent = r;
+  lbl.textContent = REP_LABELS[r] || '';
+  for (let i = 1; i <= 5; i++) {
+    const s = document.createElement('div');
+    s.className = 'rep-star' + (r >= i ? ' filled' : '');
+    s.textContent = '⚙';
+    s.onclick = () => { state.reputacao = i; buildRepStars(); };
+    cont.appendChild(s);
+  }
+}
+
+// ─── PV ─────────────────────────────────────────────────────────────────────────
+function updatePV() {
+  const max = state.pv_max;
+  if (state.pv_cur > max) state.pv_cur = max;
+  const pct = Math.max(0, Math.min(100, (state.pv_cur / max) * 100));
+  document.getElementById('pv-cur').textContent = state.pv_cur;
+  document.getElementById('pv-max-disp').textContent = max;
+  document.getElementById('pv-bar').style.width = pct + '%';
+  const cur = document.getElementById('pv-cur');
+  if (state.pv_cur <= 0) cur.style.color = 'var(--rust)';
+  else if (pct < 30) cur.style.color = 'var(--copper)';
+  else cur.style.color = 'var(--copper)';
+}
+
+function damagePV() {
+  const d = parseInt(document.getElementById('pv-delta').value) || 1;
+  state.pv_cur = Math.max(0, state.pv_cur - d);
+  updatePV();
+}
+
+function healPV() {
+  const d = parseInt(document.getElementById('pv-delta').value) || 1;
+  state.pv_cur = Math.min(state.pv_max, state.pv_cur + d);
+  updatePV();
+}
+
+// ─── EXAUSTÃO ────────────────────────────────────────────────────────────────────
+function buildExaustao() {
+  const cont = document.getElementById('ex-pips');
+  const stat = document.getElementById('ex-status');
+  if (!cont) return;
+  cont.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'ex-pip' + (i===5?' lethal':'') + ((state.exaustao||0) > i ? ' filled' : '');
+    pip.onclick = () => {
+      state.exaustao = (state.exaustao||0) > i ? i : i+1;
+      buildExaustao();
+    };
+    const lbl = document.createElement('div');
+    lbl.className = 'ex-label';
+    lbl.textContent = i+1;
+    const wrap = document.createElement('div');
+    wrap.style.textAlign = 'center';
+    wrap.appendChild(pip);
+    wrap.appendChild(lbl);
+    cont.appendChild(wrap);
+  }
+  if (stat) {
+    const lvl = state.exaustao || 0;
+    stat.textContent = lvl === 0 ? 'Descansado' : EX_LABELS[lvl] || 'MORTE';
+    stat.style.color = lvl >= 5 ? 'var(--rust)' : lvl >= 3 ? 'var(--copper)' : 'var(--parch-dark)';
+  }
+}
+
+// ─── CV ──────────────────────────────────────────────────────────────────────────
+function buildCVPips() {
+  const cont = document.getElementById('cv-track');
+  if (!cont) return;
+  cont.innerHTML = '';
+  const max = state.cv_max || 0;
+  const cur = state.cv_cur || 0;
+  for (let i = 0; i < max; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'cv-pip' + (cur > i ? ' filled' : '');
+    pip.onclick = () => {
+      state.cv_cur = cur > i ? i : i+1;
+      buildCVPips();
+    };
+    cont.appendChild(pip);
+  }
+  if (max === 0) cont.innerHTML = '<span style="font-size:0.75rem;color:var(--parch-dark);font-style:italic">Sem caldeira instalada.</span>';
+}
+
+// ─── ESCALA DE FERRUGEM ──────────────────────────────────────────────────────────
+function buildEF() {
+  const ef = state.ef || 0;
+  document.getElementById('ef-num').textContent = ef;
+  const pct = Math.min(100, (ef / 21) * 100);
+  document.getElementById('ef-bar').style.width = pct + '%';
+  const tier = EF_DATA.find(t => ef <= t.max) || EF_DATA[EF_DATA.length-1];
+  const status = document.getElementById('ef-status');
+  const effect = document.getElementById('ef-effect');
+  if (status) { status.className = 'ef-status ' + tier.cls; status.textContent = tier.label; }
+  if (effect) effect.textContent = tier.effect;
+}
+
+function changeEF(delta) {
+  state.ef = Math.max(0, (state.ef||0) + delta);
+  buildEF();
+  updateAncoraNote();
+}
+
+// ─── ÂNCORAS ─────────────────────────────────────────────────────────────────────
+function buildAncoras() {
+  const cont = document.getElementById('ancoras-list');
+  if (!cont) return;
+  cont.innerHTML = '';
+  state.ancoras.forEach((a, i) => {
+    const div = document.createElement('div');
+    div.className = 'ancora-item' + (a.quebrada ? ' broken' : '');
+    div.innerHTML = `
+      <div class="ancora-num">${i+1}</div>
+      <input type="text" value="${a.texto||''}" placeholder="Uma memória, pessoa, objeto ou princípio..." oninput="state.ancoras[${i}].texto=this.value">
+      <button class="ancora-break-btn" onclick="toggleAncora(${i})" title="${a.quebrada?'Restaurar':'Quebrar'}">${a.quebrada ? '↺' : '✕'}</button>
+    `;
+    cont.appendChild(div);
+  });
+  updateAncoraNote();
+}
+
+function toggleAncora(i) {
+  state.ancoras[i].quebrada = !state.ancoras[i].quebrada;
+  buildAncoras();
+}
+
+function updateAncoraNote() {
+  const intactas = state.ancoras.filter(a => !a.quebrada).length;
+  const ef = state.ef || 0;
+  const note = document.getElementById('ancora-note');
+  if (!note) return;
+  if (intactas === 0 && ef >= 21) {
+    note.textContent = '0 âncoras + EF 21+ — Dissolução iminente.';
+    note.style.borderColor = 'var(--rust)';
+    note.style.color = 'var(--rust)';
+  } else if (intactas === 0) {
+    note.textContent = '0 âncoras — vulnerável ao metal.';
+    note.style.borderColor = 'var(--copper)';
+    note.style.color = 'var(--copper)';
+  } else {
+    note.textContent = `${intactas} âncora${intactas!==1?'s':''} intacta${intactas!==1?'s':''} — a ferrugem não te consome.`;
+    note.style.borderColor = 'var(--brass-dim)';
+    note.style.color = 'var(--parch-dark)';
+  }
+}
+
+// ─── MODIFICAÇÕES ────────────────────────────────────────────────────────────────
+function buildMods() {
+  const list = document.getElementById('mod-list');
+  if (!list) return;
+  list.innerHTML = '';
+  let efTotal = 0;
+  (state.modificacoes||[]).forEach((m, i) => {
+    efTotal += (m.ef||0);
+    const li = document.createElement('li');
+    li.className = 'mod-item';
+    li.innerHTML = `
+      <div class="mod-name">${m.nome}</div>
+      <div class="mod-badge grau-${m.grau}">G${m.grau}</div>
+      <div class="ef-cost">EF ${m.ef||0}</div>
+      <button class="mod-del" onclick="removeMod(${i})" title="Remover">✕</button>
+    `;
+    list.appendChild(li);
+  });
+  const tot = document.getElementById('mods-ef-total');
+  if (tot) tot.textContent = efTotal;
+}
+
+function addMod() {
+  const nome = document.getElementById('mod-nome-inp').value.trim();
+  const grau = parseInt(document.getElementById('mod-grau-inp').value);
+  const ef   = parseInt(document.getElementById('mod-ef-inp').value) || 0;
+  if (!nome) return;
+  state.modificacoes.push({ nome, grau, ef });
+  document.getElementById('mod-nome-inp').value = '';
+  document.getElementById('mod-ef-inp').value = '';
+  buildMods();
+}
+
+function removeMod(i) {
+  state.modificacoes.splice(i, 1);
+  buildMods();
+}
+
+// ─── RECURSOS ────────────────────────────────────────────────────────────────────
+function buildRecursos() {
+  const cont = document.getElementById('recursos-grid');
+  if (!cont) return;
+  cont.innerHTML = '';
+  RECURSOS_DEF.forEach(r => {
+    const val = state.recursos[r.key] || 0;
+    const div = document.createElement('div');
+    div.className = 'recurso-block';
+    div.innerHTML = `
+      <span class="recurso-name">${r.label}</span>
+      <div class="recurso-count">
+        <button class="r-btn" onclick="changeRecurso('${r.key}',-1)">−</button>
+        <div class="r-num" id="r-${r.key}">${val}</div>
+        <button class="r-btn" onclick="changeRecurso('${r.key}',1)">+</button>
+      </div>
+    `;
+    cont.appendChild(div);
+  });
+}
+
+function changeRecurso(key, delta) {
+  state.recursos[key] = Math.max(0, (state.recursos[key]||0) + delta);
+  const el = document.getElementById('r-' + key);
+  if (el) el.textContent = state.recursos[key];
+}
+
+// ─── CONTATOS ─────────────────────────────────────────────────────────────────────
+function buildContatos() {
+  const cont = document.getElementById('contatos-list');
+  if (!cont) return;
+  cont.innerHTML = '';
+  (state.contatos||[]).forEach((c, ci) => {
+    const div = document.createElement('div');
+    div.className = 'contato-item';
+    div.innerHTML = `
+      <div class="contato-header">
+        <div class="contato-name">${c.nome}</div>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <span style="font-family:'Cinzel',serif;font-size:0.6rem;color:var(--parch-dark)">Favores</span>
+          <div class="favor-pips">
+            ${[0,1,2].map(fi=>`<div class="favor-pip ${(c.favores||0)>fi?'filled':''}" onclick="setFavor(${ci},${fi})"></div>`).join('')}
+          </div>
+          <button class="mod-del" onclick="removeContato(${ci})">✕</button>
+        </div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--parch-dark);font-style:italic">${c.info||''}</div>
+    `;
+    cont.appendChild(div);
+  });
+}
+
+function setFavor(ci, fi) {
+  const c = state.contatos[ci];
+  c.favores = (c.favores||0) > fi ? fi : fi+1;
+  buildContatos();
+}
+
+function addContato() {
+  const nome = document.getElementById('ct-nome').value.trim();
+  const info = document.getElementById('ct-info').value.trim();
+  if (!nome) return;
+  state.contatos.push({ nome, info, favores:0 });
+  document.getElementById('ct-nome').value = '';
+  document.getElementById('ct-info').value = '';
+  buildContatos();
+}
+
+function removeContato(i) {
+  state.contatos.splice(i, 1);
+  buildContatos();
+}
+
+// ─── SAVE / LOAD ─────────────────────────────────────────────────────────────────
+function collectTextFields() {
+  const fields = ['nome','apelido','origem','aparencia','moradia','detalhe',
+                  'convergencia','contato_init','equipamento','notas'];
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el) state[f] = el.value;
+  });
+  ['arqueamento','profissao'].forEach(f => {
+    const el = document.getElementById(f);
+    if (el) state[f] = el.value;
+  });
+  // collect ancoras text
+  state.ancoras.forEach((a, i) => {
+    const el = document.querySelector(`#ancoras-list .ancora-item:nth-child(${i+1}) input`);
+    if (el) a.texto = el.value;
+  });
+}
+
+function saveSheet() {
+  collectTextFields();
+  localStorage.setItem('maculados_ficha', JSON.stringify(state));
+  showToast('Ficha salva.');
+}
+
+function clearSheet() {
+  if (!confirm('Limpar toda a ficha? Esta ação não pode ser desfeita.')) return;
+  localStorage.removeItem('maculados_ficha');
+  location.reload();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Auto-save every 30s
+setInterval(() => { collectTextFields(); localStorage.setItem('maculados_ficha', JSON.stringify(state)); }, 30000);
+</script>
+</body>
+</html>
