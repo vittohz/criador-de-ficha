@@ -1856,6 +1856,160 @@ function showToast(msg) {
 
 // Auto-save every 30s
 setInterval(() => { collectTextFields(); localStorage.setItem('maculados_ficha', JSON.stringify(state)); }, 30000);
+<script>
+/* ================= ESTADO ================= */
+let state = {
+  exaustao: 0,
+  pv_max: 16,
+  pv_cur: 16,
+  cv_max: 0,
+  cv_cur: 0,
+};
+
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  init();
+});
+
+function init() {
+  buildExaustao();
+  setupPV();
+  buildCV();
+}
+
+/* ================= EXAUSTÃO ================= */
+const EX_LABELS = [
+  'Descansado',
+  'Desvantagem em atributos',
+  'Deslocamento pela metade',
+  'Desvantagem em ataques',
+  'PV máximo reduzido',
+  'Deslocamento zero',
+  'MORTE'
+];
+
+function buildExaustao() {
+  const cont = document.getElementById("ex-pips");
+  const status = document.getElementById("ex-status");
+  if (!cont) return;
+
+  cont.innerHTML = "";
+
+  for (let i = 0; i < 6; i++) {
+    const pip = document.createElement("div");
+    pip.className = "ex-pip" + (i === 5 ? " lethal" : "");
+
+    if (state.exaustao > i) {
+      pip.classList.add("filled");
+    }
+
+    pip.onclick = () => {
+      state.exaustao = state.exaustao > i ? i : i + 1;
+      buildExaustao();
+    };
+
+    const label = document.createElement("div");
+    label.className = "ex-label";
+    label.textContent = i + 1;
+
+    const wrap = document.createElement("div");
+    wrap.style.textAlign = "center";
+
+    wrap.appendChild(pip);
+    wrap.appendChild(label);
+    cont.appendChild(wrap);
+  }
+
+  if (status) {
+    const lvl = state.exaustao;
+    status.textContent = lvl === 0 ? "Descansado" : EX_LABELS[lvl];
+
+    if (lvl >= 5) status.style.color = "red";
+    else if (lvl >= 3) status.style.color = "orange";
+    else status.style.color = "#aaa";
+  }
+}
+
+/* ================= PV ================= */
+function setupPV() {
+  const maxInput = document.getElementById("pv-max");
+  const deltaInput = document.getElementById("pv-delta");
+
+  if (maxInput) {
+    maxInput.addEventListener("input", () => {
+      state.pv_max = parseInt(maxInput.value) || 1;
+      if (state.pv_cur > state.pv_max) state.pv_cur = state.pv_max;
+      updatePV();
+    });
+  }
+
+  window.damagePV = () => {
+    const d = parseInt(deltaInput.value) || 1;
+    state.pv_cur = Math.max(0, state.pv_cur - d);
+    updatePV();
+  };
+
+  window.healPV = () => {
+    const d = parseInt(deltaInput.value) || 1;
+    state.pv_cur = Math.min(state.pv_max, state.pv_cur + d);
+    updatePV();
+  };
+
+  updatePV();
+}
+
+function updatePV() {
+  const curEl = document.getElementById("pv-cur");
+  const maxEl = document.getElementById("pv-max-disp");
+  const bar = document.getElementById("pv-bar");
+
+  if (!curEl || !maxEl || !bar) return;
+
+  curEl.textContent = state.pv_cur;
+  maxEl.textContent = state.pv_max;
+
+  const pct = (state.pv_cur / state.pv_max) * 100;
+  bar.style.width = pct + "%";
+}
+
+/* ================= CV ================= */
+function buildCV() {
+  const cont = document.getElementById("cv-track");
+  const maxInput = document.getElementById("cv-max");
+
+  if (!cont || !maxInput) return;
+
+  maxInput.addEventListener("input", () => {
+    state.cv_max = parseInt(maxInput.value) || 0;
+    if (state.cv_cur > state.cv_max) state.cv_cur = state.cv_max;
+    renderCV();
+  });
+
+  function renderCV() {
+    cont.innerHTML = "";
+
+    if (state.cv_max === 0) {
+      cont.innerHTML = "<span style='font-size:12px;color:#888'>Sem caldeira.</span>";
+      return;
+    }
+
+    for (let i = 0; i < state.cv_max; i++) {
+      const pip = document.createElement("div");
+      pip.className = "cv-pip";
+
+      if (state.cv_cur > i) pip.classList.add("filled");
+
+      pip.onclick = () => {
+        state.cv_cur = state.cv_cur > i ? i : i + 1;
+        renderCV();
+      };
+
+      cont.appendChild(pip);
+    }
+  }
+
+  renderCV();
+}
 </script>
 </body>
 </html>
