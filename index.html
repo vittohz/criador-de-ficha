@@ -1625,42 +1625,22 @@ function buildExaustao() {
 }
 
 // ─── CV ──────────────────────────────────────────────────────────────────────────
-function buildCV() {
-  const cont = document.getElementById("cv-track");
-  const maxInput = document.getElementById("cv-max");
-
-  if (!cont || !maxInput) return;
-
-  maxInput.addEventListener("input", () => {
-    state.cv_max = parseInt(maxInput.value) || 0;
-    if (state.cv_cur > state.cv_max) state.cv_cur = state.cv_max;
-    renderCV();
-  });
-
-  function renderCV() {
-    cont.innerHTML = "";
-
-    if (state.cv_max === 0) {
-      cont.innerHTML = "<span style='font-size:12px;color:#888'>Sem caldeira.</span>";
-      return;
-    }
-
-    for (let i = 0; i < state.cv_max; i++) {
-      const pip = document.createElement("div");
-      pip.className = "cv-pip";
-
-      if (state.cv_cur > i) pip.classList.add("filled");
-
-      pip.onclick = () => {
-        state.cv_cur = state.cv_cur > i ? i : i + 1;
-        renderCV();
-      };
-
-      cont.appendChild(pip);
-    }
+function buildCVPips() {
+  const cont = document.getElementById('cv-track');
+  if (!cont) return;
+  cont.innerHTML = '';
+  const max = state.cv_max || 0;
+  const cur = state.cv_cur || 0;
+  for (let i = 0; i < max; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'cv-pip' + (cur > i ? ' filled' : '');
+    pip.onclick = () => {
+      state.cv_cur = cur > i ? i : i+1;
+      buildCVPips();
+    };
+    cont.appendChild(pip);
   }
-
-  renderCV();
+  if (max === 0) cont.innerHTML = '<span style="font-size:0.75rem;color:var(--parch-dark);font-style:italic">Sem caldeira instalada.</span>';
 }
 
 // ─── ESCALA DE FERRUGEM ──────────────────────────────────────────────────────────
