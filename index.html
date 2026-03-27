@@ -21,7 +21,7 @@
         <div class="menu-logo-sub">Sistema de Ficha de Personagem · Alpha 3.0</div>
       </div>
       <div class="menu-actions">
-        <button class="btn btn-ghost btn-sm" onclick="openAuthModal()">Entrar</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-io')">⬡ Exportar/Importar</button>
         <button class="btn btn-primary" onclick="createNewChar()">+ Nova Ficha</button>
       </div>
     </div>
@@ -29,11 +29,11 @@
   <div class="menu-body">
     <div class="auth-bar" id="auth-bar">
       <div class="auth-status">
-        <div class="auth-dot offline" id="auth-dot"></div>
-        <span class="t-small" id="auth-label">Modo local — fichas salvas no navegador</span>
+        <div class="auth-dot" style="background:var(--green-ok);box-shadow:0 0 6px rgba(74,154,90,0.5)"></div>
+        <span class="t-small">Fichas salvas localmente neste dispositivo — use Exportar/Importar para fazer backup</span>
       </div>
       <div style="margin-left:auto">
-        <button class="btn btn-ghost btn-sm" onclick="openAuthModal()">Entrar com conta</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-io')">⬡ Exportar/Importar</button>
       </div>
     </div>
     <div class="chars-section-header">
@@ -140,6 +140,7 @@
         <button class="tab-btn" data-tab="pericias">Perícias</button>
         <button class="tab-btn" data-tab="modificacoes">Modificações</button>
         <button class="tab-btn" data-tab="inventario">Inventário</button>
+        <button class="tab-btn" data-tab="arqueamento">Arqueamento</button>
         <button class="tab-btn" data-tab="notas">Notas &amp; Contatos</button>
       </nav>
 
@@ -292,6 +293,10 @@
       </div>
 
       <!-- TAB: NOTAS -->
+      <div class="tab-content" id="tab-arqueamento">
+        <div id="skilltree-container"></div>
+      </div>
+
       <div class="tab-content" id="tab-notas">
         <div class="notas-grid">
           <div>
@@ -387,9 +392,30 @@
   </div>
 </div>
 
+<!-- MODAL: EXPORT/IMPORT -->
+<div class="modal-backdrop" id="modal-io">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="t-title" style="font-size:1rem">Exportar / Importar Fichas</span>
+      <button class="btn-icon btn-ghost" onclick="closeModal('modal-io')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="t-small" style="margin-bottom:14px;line-height:1.6">Exporte suas fichas como arquivo JSON para backup ou para usar em outro dispositivo. Para importar, selecione um arquivo exportado anteriormente.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-primary" onclick="exportChars()" style="justify-content:center">⬇ Exportar todas as fichas</button>
+        <label class="btn" style="justify-content:center;cursor:pointer">⬆ Importar fichas<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="importChars(this)"></label>
+      </div>
+      <div id="io-status" style="margin-top:12px;font-size:13px;color:var(--green-ok);display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-io')">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="data.js"></script>
+<script src="skilltrees.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
