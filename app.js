@@ -1,22 +1,6 @@
 // ═══════════════════════════════════════════════════════
-// MACULADOS PELO METAL — App Logic
+// MACULADOS PELO METAL — App Logic v2
 // ═══════════════════════════════════════════════════════
-
-// ── SUPABASE CONFIG (opcional) ───────────────────────
-// Para ativar login com banco de dados:
-// 1. Crie conta em supabase.com
-// 2. Crie projeto
-// 3. Vá em Settings > API e copie a URL e anon key
-// 4. Substitua os valores abaixo
-// 5. Execute o SQL no editor do Supabase (veja README)
-const SUPABASE_URL  = 'https://kmbngdhtgoxmlnohutfi.supabase.co';
-const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttYm5nZGh0Z294bWxub2h1dGZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1ODYxMDksImV4cCI6MjA5MDE2MjEwOX0.gHLsDu7YjiUQtviWFPxWWzio9PN9A8ifXke0ELEFWz4';
-const USE_SUPABASE  = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
-let supabaseClient  = null;
-
-if (USE_SUPABASE && typeof window.supabase !== 'undefined') {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-}
 
 // ── CONSTANTS ─────────────────────────────────────────
 const ATTRS_DEF = [
@@ -80,7 +64,6 @@ const EF_TIERS = [
 ];
 
 const EX_LABELS = ['Descansado','Desvantagem atributos','Deslocamento metade','Desvantagem ataques','PV máximo reduzido','Deslocamento zero','☠ MORTE'];
-
 const REP_LABELS = ['','Desconhecido','Reconhecido','Respeitado','Influente','Referência'];
 
 const RECURSOS_DEF = [
@@ -92,36 +75,29 @@ const RECURSOS_DEF = [
   {key:'resto',    label:'Restos'},
 ];
 
-// ── DEFAULT CHARACTER STATE ───────────────────────────
+// ── DEFAULT STATE ──────────────────────────────────────
 function defaultChar(id) {
-  const char = {
+  const c = {
     id: id || crypto.randomUUID(),
     nome:'', apelido:'', origem:'', aparencia:'', moradia:'', detalhe:'',
-    arqueamento:'', convergencia:'', nivel:1,
+    arqueamento:'', convergencia:'', nivel:1, stChoices:{},
     profissao:'', reputacao:1, contato_init:'',
-    pv_max:16, pv_cur:16,
-    cv_max:0, cv_cur:0,
+    pv_max:16, pv_cur:16, cv_max:0, cv_cur:0,
     exaustao:0, ef:0,
     atributos:{ vig:1, des:1, for:1, raz:1, ins:1, pre:1 },
     pericias:{},
     ancoras:[{texto:'',quebrada:false},{texto:'',quebrada:false},{texto:'',quebrada:false}],
-    modificacoes:[],
-    inventario:[],
+    modificacoes:[], inventario:[],
     recursos:{ sucata:0, reagente:0, organico:0, vapor:0, eletrico:0, resto:0 },
     contatos:[], equipamento:'', notas:'', conexoes:'',
   };
-  Object.values(PERICIAS_DEF).flat().forEach(p => { char.pericias[p.key] = 'd12'; });
-  return char;
+  Object.values(PERICIAS_DEF).flat().forEach(p => { c.pericias[p.key] = 'd12'; });
+  return c;
 }
 
 // ── APP STATE ──────────────────────────────────────────
-let appState = {
-  characters: [],   // all saved characters
-  currentId:  null, // active character id
-  user:       null, // supabase user
-};
-
-let char = null; // current character (shorthand)
+let appState = { characters:[], currentId:null };
+let char = null;
 
 // ── INIT ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -131,14 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderMenu();
   showView('menu');
 
-  // Supabase auth listener
-  if (USE_SUPABASE && supabaseClient) {
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-      appState.user = session?.user || null;
-      updateAuthBar();
-      if (appState.user) syncFromSupabase();
+  // Save btn flash
+  document.querySelectorAll('[onclick="saveSheet()"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.add('saving');
+      setTimeout(() => btn.classList.remove('saving'), 600);
     });
-  }
+  });
 });
 
 // ── VIEWS ──────────────────────────────────────────────
@@ -149,10 +124,8 @@ function showView(name) {
 
 function goToMenu() {
   if (char) { collectTextFields(); saveCurrentChar(); }
-  char = null;
-  appState.currentId = null;
-  renderMenu();
-  showView('menu');
+  char = null; appState.currentId = null;
+  renderMenu(); showView('menu');
 }
 
 // ── MENU ───────────────────────────────────────────────
@@ -169,9 +142,8 @@ function renderMenu() {
 
   if (appState.characters.length === 0) {
     const empty = document.createElement('div');
-    empty.className = 'empty-state';
-    empty.style.gridColumn = '1 / -1';
-    empty.innerHTML = `<div class="empty-state-icon">⚙</div><div style="font-size:14px">Nenhuma ficha criada ainda.<br>Clique em "Nova Ficha" para começar.</div>`;
+    empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--steel-400)';
+    empty.innerHTML = `<div style="font-size:2.5rem;margin-bottom:12px;opacity:0.3">⚙</div><div style="font-size:14px">Nenhuma ficha criada ainda.</div>`;
     grid.appendChild(empty);
     return;
   }
@@ -180,24 +152,23 @@ function renderMenu() {
     const card = document.createElement('div');
     card.className = 'char-card';
     const ef = c.ef || 0;
-    const efTier = EF_TIERS.find(t => ef <= t.max) || EF_TIERS[EF_TIERS.length-1];
     card.innerHTML = `
       <div class="char-card-actions">
-        <button class="btn btn-icon btn-ghost btn-sm" onclick="event.stopPropagation();deleteChar('${c.id}')" title="Excluir">✕</button>
+        <button class="btn btn-icon btn-danger btn-sm" onclick="event.stopPropagation();deleteChar('${c.id}')" title="Excluir ficha">✕</button>
       </div>
       <div class="char-card-arq">${c.arqueamento || 'Sem arqueamento'} · Nível ${c.nivel || 1}</div>
       <div class="char-card-name">${c.nome || 'Sem nome'}</div>
       <div class="char-card-stats">
         <div class="char-card-stat">
-          <span class="char-card-stat-val">${c.pv_cur || 0}/${c.pv_max || 16}</span>
+          <span class="char-card-stat-val">${c.pv_cur||0}/${c.pv_max||16}</span>
           <span class="char-card-stat-lbl">PV</span>
         </div>
         <div class="char-card-stat">
-          <span class="char-card-stat-val" style="color:${ef > 15 ? 'var(--rust)' : ef > 5 ? 'var(--brass)' : 'var(--smoke-300)'}">${ef}</span>
+          <span class="char-card-stat-val" style="color:${ef>15?'var(--rust)':ef>5?'var(--brass)':'var(--smoke-300)'}">${ef}</span>
           <span class="char-card-stat-lbl">EF</span>
         </div>
         <div class="char-card-stat">
-          <span class="char-card-stat-val">${c.profissao || '—'}</span>
+          <span class="char-card-stat-val">${(c.profissao||'—').split(' ')[0]}</span>
           <span class="char-card-stat-lbl">PROFISSÃO</span>
         </div>
       </div>
@@ -217,17 +188,22 @@ function createNewChar() {
 function openChar(id) {
   const found = appState.characters.find(c => c.id === id);
   if (!found) return;
-  char = JSON.parse(JSON.stringify(found)); // deep copy
+  char = JSON.parse(JSON.stringify(found));
+  if (!char.stChoices)  char.stChoices  = {};
+  if (!char.inventario) char.inventario = [];
   appState.currentId = id;
   buildSheet();
   showView('sheet');
 }
 
 function deleteChar(id) {
-  if (!confirm('Excluir esta ficha permanentemente?')) return;
+  const c = appState.characters.find(x => x.id === id);
+  const name = c?.nome || 'esta ficha';
+  if (!confirm(`Excluir "${name}" permanentemente? Esta ação não pode ser desfeita.`)) return;
   appState.characters = appState.characters.filter(c => c.id !== id);
   saveAppState();
   renderMenu();
+  showToast('Ficha excluída.');
 }
 
 // ── SAVE / LOAD ────────────────────────────────────────
@@ -240,13 +216,14 @@ function loadAppState() {
     }
   } catch(e) { console.warn('Load error:', e); }
 
-  // Migration: support old single-char format
+  // Migration from old single-char format
   try {
-    const oldChar = localStorage.getItem('maculados_ficha');
-    if (oldChar && appState.characters.length === 0) {
-      const c = { ...defaultChar(), ...JSON.parse(oldChar) };
+    const old = localStorage.getItem('maculados_ficha');
+    if (old && appState.characters.length === 0) {
+      const c = { ...defaultChar(), ...JSON.parse(old) };
       if (!c.id) c.id = crypto.randomUUID();
       if (!c.inventario) c.inventario = [];
+      if (!c.stChoices)  c.stChoices  = {};
       appState.characters.push(c);
       saveAppState();
       localStorage.removeItem('maculados_ficha');
@@ -255,19 +232,15 @@ function loadAppState() {
 }
 
 function saveAppState() {
-  try {
-    localStorage.setItem('maculados_app', JSON.stringify({ characters: appState.characters }));
-  } catch(e) { console.error('Save error:', e); }
+  try { localStorage.setItem('maculados_app', JSON.stringify({ characters: appState.characters })); }
+  catch(e) { console.error('Save error:', e); }
 }
 
 function saveCurrentChar() {
   if (!char || !appState.currentId) return;
   const idx = appState.characters.findIndex(c => c.id === appState.currentId);
-  if (idx >= 0) {
-    appState.characters[idx] = JSON.parse(JSON.stringify(char));
-  }
+  if (idx >= 0) appState.characters[idx] = JSON.parse(JSON.stringify(char));
   saveAppState();
-  if (USE_SUPABASE && supabaseClient && appState.user) syncCharToSupabase(char);
 }
 
 function saveSheet() {
@@ -279,26 +252,16 @@ function saveSheet() {
 
 function collectTextFields() {
   if (!char) return;
-  const texts = ['nome','apelido','origem','aparencia','moradia','detalhe','convergencia','contato_init','equipamento','notas','conexoes'];
-  texts.forEach(f => {
-    const el = document.getElementById(f);
-    if (el) char[f] = el.value;
-  });
-  const selects = ['arqueamento','profissao'];
-  selects.forEach(f => {
-    const el = document.getElementById(f);
-    if (el) char[f] = el.value;
-  });
-  // Anchor texts
+  ['nome','apelido','origem','aparencia','moradia','detalhe','convergencia','contato_init','equipamento','notas','conexoes']
+    .forEach(f => { const el = document.getElementById(f); if (el) char[f] = el.value; });
+  ['arqueamento','profissao']
+    .forEach(f => { const el = document.getElementById(f); if (el) char[f] = el.value; });
   document.querySelectorAll('#ancoras-list .ancora-row input').forEach((inp, i) => {
     if (char.ancoras[i]) char.ancoras[i].texto = inp.value;
   });
 }
 
-// Auto-save every 45 seconds
-setInterval(() => {
-  if (char) { collectTextFields(); saveCurrentChar(); }
-}, 45000);
+setInterval(() => { if (char) { collectTextFields(); saveCurrentChar(); } }, 45000);
 
 // ── BUILD SHEET ────────────────────────────────────────
 function buildSheet() {
@@ -313,28 +276,23 @@ function buildSheet() {
   buildCVPips();
   buildAncoras();
   buildMods();
-  buildModsCatalog();
+  renderModsCatalog();
   buildInventory();
-  buildShop();
+  renderShop();
   buildRecursos();
   buildContatos();
   buildNivelPips();
   buildRepGears();
   updateArqDesc();
   restoreTextFields();
+  buildSkillTree();
 }
 
 function restoreTextFields() {
-  const texts = ['nome','apelido','origem','aparencia','moradia','detalhe','convergencia','contato_init','equipamento','notas','conexoes'];
-  texts.forEach(f => {
-    const el = document.getElementById(f);
-    if (el && char[f] !== undefined) el.value = char[f];
-  });
-  const selects = ['arqueamento','profissao'];
-  selects.forEach(f => {
-    const el = document.getElementById(f);
-    if (el) el.value = char[f] || '';
-  });
+  ['nome','apelido','origem','aparencia','moradia','detalhe','convergencia','contato_init','equipamento','notas','conexoes']
+    .forEach(f => { const el = document.getElementById(f); if (el && char[f] !== undefined) el.value = char[f]; });
+  ['arqueamento','profissao']
+    .forEach(f => { const el = document.getElementById(f); if (el) el.value = char[f] || ''; });
   const pvMax = document.getElementById('pv-max');
   if (pvMax) pvMax.value = char.pv_max || 16;
   const cvMax = document.getElementById('cv-max');
@@ -351,17 +309,13 @@ function updatePortrait() {
   const nameEl = document.getElementById('portrait-name');
   const arqEl  = document.getElementById('portrait-arq');
   if (nameEl) nameEl.textContent = char.nome || 'Novo Personagem';
-  if (arqEl)  arqEl.textContent  = char.arqueamento ? `${char.arqueamento} · Nível ${char.nivel || 1}` : '— sem arqueamento —';
-
-  // Listen on nome field to update portrait live
+  if (arqEl)  arqEl.textContent  = char.arqueamento ? `${char.arqueamento} · Nível ${char.nivel||1}` : '— sem arqueamento —';
   const nomeEl = document.getElementById('nome');
-  if (nomeEl) {
-    nomeEl.oninput = () => {
-      char.nome = nomeEl.value;
-      updateTopbarName();
-      if (nameEl) nameEl.textContent = char.nome || 'Novo Personagem';
-    };
-  }
+  if (nomeEl) nomeEl.oninput = () => {
+    char.nome = nomeEl.value;
+    updateTopbarName();
+    if (nameEl) nameEl.textContent = char.nome || 'Novo Personagem';
+  };
 }
 
 // ── TABS ───────────────────────────────────────────────
@@ -371,6 +325,7 @@ function setupTabs() {
       const tab = btn.dataset.tab;
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+      if (tab === 'arqueamento' && char) buildSkillTree();
     };
   });
 }
@@ -380,7 +335,6 @@ function buildAttrs() {
   const grid = document.getElementById('attrs-grid');
   if (!grid) return;
   grid.innerHTML = '';
-
   ATTRS_DEF.forEach(a => {
     const val = char.atributos[a.key] || 1;
     const cell = document.createElement('div');
@@ -450,6 +404,7 @@ function updateArqDesc() {
   if (desc) desc.textContent = ARQ_DESCS[char.arqueamento] || 'Escolha um arqueamento para ver sua descrição.';
   const arqEl = document.getElementById('portrait-arq');
   if (arqEl) arqEl.textContent = char.arqueamento ? `${char.arqueamento} · Nível ${char.nivel||1}` : '— sem arqueamento —';
+  buildSkillTree();
 }
 
 function buildNivelPips() {
@@ -461,7 +416,7 @@ function buildNivelPips() {
   for (let i = 1; i <= 10; i++) {
     const pip = document.createElement('div');
     pip.className = 'nivel-pip' + ((char.nivel||1) >= i ? ' on' : '');
-    pip.onclick = () => { char.nivel = i; buildNivelPips(); };
+    pip.onclick = () => { char.nivel = i; buildNivelPips(); buildSkillTree(); };
     cont.appendChild(pip);
   }
 }
@@ -488,7 +443,7 @@ function buildRepGears() {
 // ── PV ─────────────────────────────────────────────────
 function buildPV() {
   const max = char.pv_max || 16;
-  const cur = char.pv_cur || 0;
+  const cur = char.pv_cur != null ? char.pv_cur : max;
   const pct = Math.max(0, Math.min(100, (cur / max) * 100));
   const curEl = document.getElementById('pv-cur');
   const maxEl = document.getElementById('pv-max-disp');
@@ -516,16 +471,16 @@ function healPV() {
 
 // ── ESCALA DE FERRUGEM ─────────────────────────────────
 function buildEF() {
-  const ef  = char.ef || 0;
-  const num = document.getElementById('ef-num');
-  const bar = document.getElementById('ef-bar');
-  const sts = document.getElementById('ef-status');
-  const efx = document.getElementById('ef-effect');
-  if (num) num.textContent = ef;
-  if (bar) bar.style.width = Math.min(100, (ef / 21) * 100) + '%';
+  const ef = char.ef || 0;
+  const numEl = document.getElementById('ef-num');
+  const barEl = document.getElementById('ef-bar');
+  const stsEl = document.getElementById('ef-status');
+  const fxEl  = document.getElementById('ef-effect');
+  if (numEl) numEl.textContent = ef;
+  if (barEl) barEl.style.width = Math.min(100, (ef / 21) * 100) + '%';
   const tier = EF_TIERS.find(t => ef <= t.max) || EF_TIERS[EF_TIERS.length-1];
-  if (sts) { sts.className = 'ef-status-badge ' + tier.cls; sts.textContent = tier.label; }
-  if (efx) efx.textContent = tier.fx;
+  if (stsEl) { stsEl.className = 'ef-status-badge ' + tier.cls; stsEl.textContent = tier.label; }
+  if (fxEl)  fxEl.textContent = tier.fx;
   updateAncoraNote();
 }
 
@@ -541,8 +496,8 @@ function buildExaustao() {
   if (!cont) return;
   cont.innerHTML = '';
   for (let i = 0; i < 6; i++) {
-    const pip = document.createElement('div');
     const filled = (char.exaustao || 0) > i;
+    const pip = document.createElement('div');
     pip.className = 'ex-pip' + (filled ? ' filled' : '') + (i === 5 ? ' lethal' : '');
     pip.textContent = i + 1;
     pip.onclick = () => { char.exaustao = (char.exaustao||0) > i ? i : i+1; buildExaustao(); };
@@ -634,7 +589,7 @@ function buildMods() {
   char.modificacoes.forEach((m, i) => {
     efTotal += m.ef || 0;
     const row = document.createElement('div');
-    row.className = 'mod-installed-item';
+    row.className = 'mod-installed-item has-tooltip';
     row.innerHTML = `
       <div>
         <div class="mod-installed-name">${m.nome}</div>
@@ -643,13 +598,18 @@ function buildMods() {
       <span class="badge badge-g${m.grau}">G${m.grau}</span>
       <span class="mod-ef-tag">EF +${m.ef||0}</span>
       <button class="mod-del-btn" onclick="removeMod(${i})">✕</button>
+      ${makeInstalledModTooltip(m)}
     `;
     cont.appendChild(row);
   });
   document.getElementById('mods-ef-total').textContent = efTotal;
 }
 
-function buildModsCatalog() { renderModsCatalog(); }
+function makeInstalledModTooltip(m) {
+  const full = GAME_DATA.allMods.find(x => x.id === m.id);
+  if (!full) return `<div class="tooltip"><div class="tooltip-name">${m.nome}</div><div class="tooltip-row"><span class="tooltip-tag">Efeito</span><span class="tooltip-val">${m.efeito||'—'}</span></div></div>`;
+  return makeModTooltip(full);
+}
 
 function renderModsCatalog() {
   const cont = document.getElementById('mods-catalog');
@@ -657,7 +617,7 @@ function renderModsCatalog() {
   const search = (document.getElementById('mods-search')?.value || '').toLowerCase();
   let items = GAME_DATA.allMods;
   if (modsGrauFilter !== 'all') items = items.filter(m => m.grau === parseInt(modsGrauFilter));
-  if (search) items = items.filter(m => m.name.toLowerCase().includes(search) || m.efeito.toLowerCase().includes(search));
+  if (search) items = items.filter(m => m.name.toLowerCase().includes(search) || (m.efeito||'').toLowerCase().includes(search));
 
   if (items.length === 0) {
     cont.innerHTML = '<div style="padding:16px;text-align:center;color:var(--steel-400);font-size:13px">Nenhuma modificação encontrada.</div>';
@@ -665,23 +625,35 @@ function renderModsCatalog() {
   }
   cont.innerHTML = '';
   items.forEach(m => {
+    const alreadyHas = char && char.modificacoes && char.modificacoes.some(x => x.id === m.id);
     const row = document.createElement('div');
-    row.className = 'catalog-item';
-    const alreadyHas = char.modificacoes.some(x => x.id === m.id);
+    row.className = 'catalog-item has-tooltip';
     row.innerHTML = `
       <div>
         <div class="catalog-item-name">${m.name}</div>
-        <div class="catalog-item-info">${m.efeito} · ${m.custo}eg · EF ${m.ef}</div>
+        <div class="catalog-item-info">${m.efeito} · ${m.custo}eg</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <span class="badge badge-g${m.grau}">G${m.grau}</span>
         <button class="catalog-add-btn" onclick="installMod('${m.id}')" ${alreadyHas?'style="opacity:0.4"':''}>
           ${alreadyHas ? '✓' : '+'}
         </button>
       </div>
+      ${makeModTooltip(m)}
     `;
     cont.appendChild(row);
   });
+}
+
+function makeModTooltip(m) {
+  return `
+    <div class="tooltip tooltip-left">
+      <div class="tooltip-name">${m.name}</div>
+      <div class="tooltip-row"><span class="tooltip-tag">Efeito</span><span class="tooltip-val">${m.efeito||'—'}</span></div>
+      ${m.desvantagem ? `<div class="tooltip-row"><span class="tooltip-tag">Desvantagem</span><span class="tooltip-val warn">${m.desvantagem}</span></div>` : ''}
+      <div class="tooltip-row"><span class="tooltip-tag">Manutenção</span><span class="tooltip-val ${m.manutencao==='Nenhuma'?'ok':''}">${m.manutencao||'—'}</span></div>
+      <div class="tooltip-row"><span class="tooltip-tag">Custo</span><span class="tooltip-val">${m.custo}eg · EF ${m.ef} · ${m.pts} pt${m.pts>1?'s':''}</span></div>
+    </div>`;
 }
 
 function installMod(id) {
@@ -730,8 +702,6 @@ function buildInventory() {
   });
 }
 
-function buildShop() { renderShop(); }
-
 function renderShop() {
   const cont = document.getElementById('shop-list');
   if (!cont) return;
@@ -747,20 +717,32 @@ function renderShop() {
   cont.innerHTML = '';
   items.forEach(item => {
     const row = document.createElement('div');
-    row.className = 'shop-item';
+    row.className = 'shop-item has-tooltip';
     row.innerHTML = `
       <div>
         <div style="font-size:13px">${item.name}</div>
-        <div style="font-size:11px;color:var(--smoke-dim);font-style:italic">${item.props || item.def || '—'}</div>
+        <div style="font-size:11px;color:var(--smoke-dim);font-style:italic">${(item.props||item.def||'—').slice(0,50)}</div>
       </div>
-      <div style="text-align:right">
+      <div style="text-align:right;flex-shrink:0">
         ${item.dano && item.dano !== '—' ? `<div class="shop-item-dano">${item.dano}</div>` : ''}
         <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--parch-dim)">${item.preco||item.custo||0}eg</div>
         <button class="catalog-add-btn" onclick="addItemToInv('${item.id}')">+</button>
       </div>
+      ${makeItemTooltip(item)}
     `;
     cont.appendChild(row);
   });
+}
+
+function makeItemTooltip(item) {
+  return `
+    <div class="tooltip tooltip-left">
+      <div class="tooltip-name">${item.name}</div>
+      ${item.dano && item.dano !== '—' ? `<div class="tooltip-row"><span class="tooltip-tag">Dano</span><span class="tooltip-val" style="color:var(--copper)">${item.dano}</span></div>` : ''}
+      <div class="tooltip-row"><span class="tooltip-tag">Propriedades</span><span class="tooltip-val">${item.props||item.def||'—'}</span></div>
+      <div class="tooltip-row"><span class="tooltip-tag">Preço</span><span class="tooltip-val">${item.preco||item.custo||0} eg</span></div>
+      ${item.tipo ? `<div class="tooltip-row"><span class="tooltip-tag">Tipo</span><span class="tooltip-val">${item.tipo}</span></div>` : ''}
+    </div>`;
 }
 
 function addItemToInv(id) {
@@ -794,7 +776,7 @@ function addManualItem() {
   const prop = document.getElementById('manual-item-prop')?.value.trim();
   if (!nome) return;
   if (!char.inventario) char.inventario = [];
-  char.inventario.push({ id: crypto.randomUUID(), nome, prop, qty, categoria: cat });
+  char.inventario.push({ id:crypto.randomUUID(), nome, prop, qty, categoria:cat });
   buildInventory();
   closeModal('modal-add-item');
   showToast(`${nome} adicionado.`);
@@ -806,7 +788,7 @@ function buildRecursos() {
   if (!cont) return;
   cont.innerHTML = '';
   RECURSOS_DEF.forEach(r => {
-    const val = (char.recursos || {})[r.key] || 0;
+    const val = (char.recursos||{})[r.key] || 0;
     const cell = document.createElement('div');
     cell.className = 'recurso-cell';
     cell.innerHTML = `
@@ -833,7 +815,7 @@ function buildContatos() {
   const cont = document.getElementById('contatos-list');
   if (!cont) return;
   cont.innerHTML = '';
-  (char.contatos || []).forEach((c, ci) => {
+  (char.contatos||[]).forEach((c, ci) => {
     const card = document.createElement('div');
     card.className = 'contato-card';
     card.innerHTML = `
@@ -853,8 +835,7 @@ function buildContatos() {
 }
 
 function setFavor(ci, fi) {
-  const c = char.contatos[ci];
-  c.favores = (c.favores||0) > fi ? fi : fi+1;
+  char.contatos[ci].favores = (char.contatos[ci].favores||0) > fi ? fi : fi+1;
   buildContatos();
 }
 
@@ -883,105 +864,64 @@ function setupFilterBars() {
     if (!bar) return;
     bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    const barId = bar.id;
-    if (barId === 'mods-filter-bar') {
-      modsGrauFilter = btn.dataset.grau;
-      renderModsCatalog();
-    }
-    if (barId === 'shop-filter-bar') {
-      shopCatFilter = btn.dataset.cat;
-      renderShop();
-    }
+    if (bar.id === 'mods-filter-bar')  { modsGrauFilter = btn.dataset.grau; renderModsCatalog(); }
+    if (bar.id === 'shop-filter-bar')  { shopCatFilter  = btn.dataset.cat;  renderShop(); }
   });
 }
 
 // ── MODALS ─────────────────────────────────────────────
-function openModal(id) {
-  document.getElementById(id)?.classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id)?.classList.remove('open');
-}
+function openModal(id)  { document.getElementById(id)?.classList.add('open'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
 document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-backdrop')) {
-    e.target.classList.remove('open');
-  }
+  if (e.target.classList.contains('modal-backdrop')) e.target.classList.remove('open');
 });
 
-// ── AUTH ───────────────────────────────────────────────
-let authMode = 'login';
-function openAuthModal() { openModal('modal-auth'); }
-function switchAuthMode(mode) {
-  authMode = mode;
-  document.getElementById('tab-login-btn')?.classList.toggle('active', mode === 'login');
-  document.getElementById('tab-register-btn')?.classList.toggle('active', mode === 'register');
+// ── AUTH (stub — replaced by local) ──────────────────
+function openAuthModal() { openModal('modal-io'); }
+function switchAuthMode() {}
+async function doAuth() {}
+
+// ── EXPORT / IMPORT ────────────────────────────────────
+function exportChars() {
+  const data = { version:'3.0', exported:new Date().toISOString(), characters:appState.characters };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `maculados-fichas-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Fichas exportadas.');
 }
 
-async function doAuth() {
-  if (!USE_SUPABASE || !supabaseClient) {
-    showToast('Configure o Supabase para usar contas.');
-    closeModal('modal-auth');
-    return;
-  }
-  const email = document.getElementById('auth-email')?.value;
-  const pass  = document.getElementById('auth-pass')?.value;
-  const errEl = document.getElementById('auth-error');
-  if (errEl) errEl.style.display = 'none';
-
-  try {
-    let result;
-    if (authMode === 'register') {
-      result = await supabaseClient.auth.signUp({ email, password:pass });
-    } else {
-      result = await supabaseClient.auth.signInWithPassword({ email, password:pass });
+function importChars(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const imported = data.characters || (Array.isArray(data) ? data : []);
+      if (!imported.length) throw new Error('Nenhuma ficha encontrada no arquivo.');
+      let added = 0;
+      imported.forEach(c => {
+        if (!c.id) c.id = crypto.randomUUID();
+        if (!appState.characters.find(x => x.id === c.id)) {
+          if (!c.inventario) c.inventario = [];
+          if (!c.stChoices)  c.stChoices  = {};
+          appState.characters.push(c);
+          added++;
+        }
+      });
+      saveAppState(); renderMenu();
+      const s = document.getElementById('io-status');
+      if (s) { s.style.display='block'; s.style.color='var(--green-ok)'; s.textContent=`${added} ficha(s) importada(s).`; }
+      showToast(`${added} ficha(s) importada(s).`);
+    } catch(err) {
+      const s = document.getElementById('io-status');
+      if (s) { s.style.display='block'; s.style.color='var(--rust)'; s.textContent='Erro: '+err.message; }
     }
-    if (result.error) throw result.error;
-    closeModal('modal-auth');
-    showToast(authMode === 'register' ? 'Conta criada!' : 'Bem-vindo!');
-  } catch(err) {
-    if (errEl) { errEl.textContent = err.message; errEl.style.display = 'block'; }
-  }
-}
-
-function updateAuthBar() {
-  const dot = document.getElementById('auth-dot');
-  const lbl = document.getElementById('auth-label');
-  if (appState.user) {
-    if (dot) { dot.classList.remove('offline'); }
-    if (lbl) lbl.textContent = appState.user.email;
-  } else {
-    if (dot) dot.classList.add('offline');
-    if (lbl) lbl.textContent = 'Modo local — fichas salvas no navegador';
-  }
-}
-
-// ── SUPABASE SYNC ──────────────────────────────────────
-async function syncFromSupabase() {
-  if (!supabaseClient || !appState.user) return;
-  try {
-    const { data, error } = await supabaseClient
-      .from('characters').select('*').eq('user_id', appState.user.id);
-    if (error) throw error;
-    if (data && data.length > 0) {
-      appState.characters = data.map(row => row.data);
-      saveAppState();
-      renderMenu();
-    }
-  } catch(e) { console.warn('Sync error:', e); }
-}
-
-async function syncCharToSupabase(c) {
-  if (!supabaseClient || !appState.user) return;
-  try {
-    await supabaseClient.from('characters').upsert({
-      id: c.id,
-      user_id: appState.user.id,
-      name: c.nome || 'Sem nome',
-      data: c,
-      updated_at: new Date().toISOString(),
-    });
-  } catch(e) { console.warn('Sync error:', e); }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // ── TOAST ──────────────────────────────────────────────
@@ -992,4 +932,204 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════════════
+// SKILL TREE
+// ═══════════════════════════════════════════════════════
+
+function buildSkillTree() {
+  const cont = document.getElementById('skilltree-container');
+  if (!cont || !char) return;
+  const arq = char.arqueamento;
+  if (!arq || !SKILL_TREES[arq]) {
+    cont.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;color:var(--steel-400)">
+        <div style="font-size:3rem;margin-bottom:16px;opacity:0.2">⚙</div>
+        <div style="font-family:var(--font-heading);font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase">
+          Escolha um Arqueamento na aba Identidade
+        </div>
+        <div style="font-size:13px;margin-top:8px;font-style:italic">
+          A skill tree aparecerá aqui
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (!char.stChoices) char.stChoices = {};
+  const nodes  = SKILL_TREES[arq];
+  const nivel  = char.nivel || 1;
+  const conv   = char.stChoices[arq + '_conv'] || null;
+  const layout = document.createElement('div');
+  layout.className = 'skilltree-layout';
+
+  // Group nodes by level
+  const byLevel = {};
+  nodes.forEach(n => { if (!byLevel[n.level]) byLevel[n.level] = []; byLevel[n.level].push(n); });
+  const levels = [...new Set(nodes.map(n => n.level))].sort((a,b) => a-b);
+
+  levels.forEach((lv, idx) => {
+    // Vertical connector
+    if (idx > 0) {
+      const conn = document.createElement('div');
+      conn.style.cssText = `width:2px;height:20px;margin:0 auto;background:${nivel>=lv?'var(--brass-dim)':'var(--steel-600)'};transition:background 0.4s;`;
+      layout.appendChild(conn);
+    }
+
+    const lvBlock = document.createElement('div');
+    lvBlock.className = 'st-level-block';
+
+    const badge = document.createElement('div');
+    badge.className = 'st-level-badge' + (nivel >= lv ? ' unlocked' : '');
+    badge.textContent = `Nível ${lv}`;
+    lvBlock.appendChild(badge);
+
+    const rowNodes = byLevel[lv];
+    const unlocked = nivel >= lv;
+
+    rowNodes.forEach(node => {
+      // Skip nodes from a different convergence branch
+      if (node.conv && node.conv !== conv) return;
+
+      if (node.type === 'convergence') {
+        renderST_Convergence(node, unlocked, conv, arq, lvBlock);
+      } else if (node.type === 'calibration') {
+        renderST_Calibration(node, unlocked, conv, arq, lvBlock);
+      } else {
+        renderST_Identity(node, unlocked, lvBlock);
+      }
+    });
+
+    layout.appendChild(lvBlock);
+  });
+
+  cont.innerHTML = '';
+  cont.appendChild(layout);
+}
+
+function renderST_Identity(node, unlocked, parent) {
+  const div = document.createElement('div');
+  div.className = 'st-node ' + node.type + (unlocked ? ' unlocked' : ' locked');
+  if (node.type === 'apotheosis') div.classList.add('apotheosis');
+  div.innerHTML = `
+    <div class="st-node-type ${node.type}">${stTypeLabel(node.type)}</div>
+    <div class="st-node-title">${node.title}</div>
+    <div class="st-node-desc">${node.desc}</div>
+    <div class="st-lock">${unlocked ? '✦' : '🔒'}</div>
+  `;
+  parent.appendChild(div);
+}
+
+function renderST_Calibration(node, unlocked, conv, arq, parent) {
+  const wrapper = document.createElement('div');
+  wrapper.style.width = '100%';
+
+  const label = document.createElement('div');
+  label.className = 'st-node-type calibration';
+  label.style.cssText = 'text-align:center;margin-bottom:8px;';
+  label.textContent = `Calibração — Escolha ${node.multi ? node.count||2 : 1}`;
+  wrapper.appendChild(label);
+
+  const grid = document.createElement('div');
+  grid.className = 'st-options';
+
+  const chosenKey = arq + '_' + node.id;
+  const chosen = char.stChoices[chosenKey] || (node.multi ? [] : null);
+  const chosenArr = node.multi ? (Array.isArray(chosen) ? chosen : []) : [];
+  const maxReached = node.multi ? chosenArr.length >= (node.count||2) : !!chosen;
+
+  node.options.forEach(opt => {
+    const isChosen = node.multi ? chosenArr.includes(opt.id) : chosen === opt.id;
+    const isUnchosen = !isChosen && maxReached;
+
+    const div = document.createElement('div');
+    div.className = 'st-option' + (!unlocked ? ' locked' : isChosen ? ' chosen' : isUnchosen ? ' unchosen' : ' available');
+    div.innerHTML = `
+      <div class="st-option-title">${opt.title}${isChosen ? '<span class="st-chosen-badge">✦</span>' : ''}</div>
+      <div class="st-option-desc">${opt.desc}</div>
+    `;
+
+    if (unlocked) {
+      if (isChosen) {
+        div.style.cursor = 'pointer';
+        div.title = 'Clique para desmarcar';
+        div.onclick = () => {
+          if (node.multi) {
+            char.stChoices[chosenKey] = chosenArr.filter(x => x !== opt.id);
+          } else {
+            delete char.stChoices[chosenKey];
+          }
+          buildSkillTree();
+        };
+      } else if (!isUnchosen) {
+        div.style.cursor = 'pointer';
+        div.onclick = () => {
+          if (node.multi) {
+            const arr = Array.isArray(char.stChoices[chosenKey]) ? char.stChoices[chosenKey] : [];
+            arr.push(opt.id);
+            char.stChoices[chosenKey] = arr;
+          } else {
+            char.stChoices[chosenKey] = opt.id;
+          }
+          buildSkillTree();
+        };
+      }
+    }
+    grid.appendChild(div);
+  });
+
+  wrapper.appendChild(grid);
+  parent.appendChild(wrapper);
+}
+
+function renderST_Convergence(node, unlocked, conv, arq, parent) {
+  const wrapper = document.createElement('div');
+  wrapper.style.width = '100%';
+
+  const label = document.createElement('div');
+  label.className = 'st-convergence-label';
+  label.textContent = '⊕ Convergência — Escolha seu Caminho ⊕';
+  wrapper.appendChild(label);
+
+  const grid = document.createElement('div');
+  grid.className = 'st-options';
+  grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, 1fr))';
+
+  node.options.forEach(opt => {
+    const isChosen = conv === opt.id;
+    const otherChosen = conv && conv !== opt.id;
+
+    const div = document.createElement('div');
+    div.className = 'st-option convergence-opt' + (!unlocked ? ' locked' : isChosen ? ' chosen' : otherChosen ? ' unchosen' : ' available');
+    div.innerHTML = `
+      <div class="st-option-title">${opt.title}${isChosen ? '<span class="st-chosen-badge">✦</span>' : ''}</div>
+      <div class="st-option-desc">${opt.desc}</div>
+    `;
+
+    if (unlocked && !otherChosen) {
+      div.style.cursor = 'pointer';
+      div.onclick = () => {
+        if (isChosen) {
+          delete char.stChoices[arq + '_conv'];
+          char.convergencia = '';
+          const el = document.getElementById('convergencia');
+          if (el) el.value = '';
+        } else {
+          char.stChoices[arq + '_conv'] = opt.id;
+          char.convergencia = opt.title;
+          const el = document.getElementById('convergencia');
+          if (el) el.value = opt.title;
+        }
+        buildSkillTree();
+      };
+    }
+    grid.appendChild(div);
+  });
+
+  wrapper.appendChild(grid);
+  parent.appendChild(wrapper);
+}
+
+function stTypeLabel(t) {
+  return { identity:'Habilidade de Identidade', calibration:'Calibração', convergence:'Convergência', apotheosis:'Apoteose — Nível 10' }[t] || t;
 }
